@@ -1,0 +1,14 @@
+.lg-th{
+	position: relative;
+	-webkit-user-select: none;
+}
+.lg-thResizeHandle{
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 5px; /*Must be in px*/
+	height: 100%;
+	border: 1px solid red;
+	cursor: col-resize;
+	z-index: 900;
+}

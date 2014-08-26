@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>LiveGrid</title>
+	<meta charset="utf-8">
+ 	<link href="css/liveGrid.css" rel="stylesheet"> 
+ 	<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script src="js/liveGrid.js"></script>
+
+	<script>
+		window.onload = function(){
+			var lg = new LiveGrid({sel: 'table', colsResize: true});
+		}
+	</script>
+	<style>
+		table{
+			/*border: 1px solid gray;*/
+		}
+		table th{
+			border: 5px solid gray;
+		}
+		table td{
+			border: 1px solid gray;
+		}
+	</style>
+</head>
+<body>
+
+<table width=600 height=200 cellspacing=0 cellpadding=0>
+	<tr>
+		<th>head1</th>
+		<th>head2</th>
+		<th>head3</th>
+		<th>head4</th>
+		<th>head5</th>
+		<th>head6</th>
+	</tr>
+	<tr>
+		<td>content1</td>
+		<td>content2</td>
+		<td>content3</td>
+		<td>content4</td>
+		<td>content5</td>
+		<td>content6</td>
+	</tr>
+	<tr>
+		<td>content1</td>
+		<td>content2</td>
+		<td>content3</td>
+		<td>content4</td>
+		<td>content5</td>
+		<td>content6</td>
+	</tr>
+</table>
+
+</body>
+</html>
