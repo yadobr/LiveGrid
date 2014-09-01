@@ -8,9 +8,13 @@
 	<script src="js/liveGrid.js"></script>
 
 	<script>
-		window.onload = function(){
+		/*window.onload = function(){
 			var lg = new LiveGrid({sel: 'table', colsResize: true});
-		}
+		}*/
+
+		$(document).ready(function(){
+			$('table').liveGrid({colsResize: true});
+		});
 	</script>
 	<style>
 		table{
@@ -26,7 +30,7 @@
 </head>
 <body>
 
-<table width=600 height=200 cellspacing=0 cellpadding=0>
+<table width=600 height=200 cellspacing=0>	
 	<tr>
 		<th>head1</th>
 		<th>head2</th>

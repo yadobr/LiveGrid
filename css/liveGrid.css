@@ -1,14 +1,21 @@
 .lg-th{
 	position: relative;
+	min-width: 50px;
 	-webkit-user-select: none;
 }
-.lg-thResizeHandle{
+.lg-resizeHandle{
 	position: absolute;
+	box-sizing: border-box;
 	right: 0;
 	top: 0;
-	width: 5px; /*Must be in px*/
-	height: 100%;
-	border: 1px solid red;
+	width: 2px; /*Must be in px*/
+	height: auto;
+	/*border: 1px solid red;*/
+	background-color: black;
+	opacity: 0;
 	cursor: col-resize;
 	z-index: 900;
+}
+.lg-sepatator{
+
 }
