@@ -1,3 +1,7 @@
+.lg-wrap{
+	width: 500px;
+	overflow-x: scroll;
+}
 .lg-th{
 	position: relative;
 	min-width: 50px;
