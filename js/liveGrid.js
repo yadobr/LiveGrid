@@ -1,6 +1,7 @@
 var i =0;
 // Global params
 var liveGrid = {
+	tableHandle: undefined,
 
 	// For cols resize
 	colsResizeActivated: false,
@@ -12,6 +13,9 @@ var liveGrid = {
 // LiveGrid
 jQuery.fn.liveGrid = function(params){
 	if(typeof params == 'object'){
+
+		// Remember table handle
+		liveGrid.tableHandle = this;
 
 		// Cols resize
 		if(params.colsResize){
@@ -64,11 +68,10 @@ jQuery.fn.liveGrid = function(params){
 					$(resizeHandle).on('mousedown', function(e){
 
 						// Set params
-						$(this).css('opacity', 1);
+						$(this).css('opacity', 1);						
 						liveGrid.colsResizeActivated = true;
 						liveGrid.activeResizeHandle = this;
 						liveGrid.activeResizeHandleRightIndent = $(this).css('right');
-//						$(this).css('right', 0);
 
 						// Add temporary class to table
 						$(this).parent().parent().parent().addClass('lg-noselect');
@@ -96,8 +99,13 @@ jQuery.fn.liveGrid = function(params){
 					liveGrid.colsResizeActivated = false;						
 
 					// Set a new width to <th>					
-					var difference = Number( $(liveGrid.activeResizeHandle).css('left').replace('px', '') - $(liveGrid.activeResizeHandle).parent().width() );					
+					var difference = Number( $(liveGrid.activeResizeHandle).css('left').replace('px', '') - $(liveGrid.activeResizeHandle).parent().width() );			
 					$(liveGrid.activeResizeHandle).parent().width( $(liveGrid.activeResizeHandle).parent().width() + difference );
+
+					// Set a new width to table
+					$(liveGrid.tableHandle).width( $(liveGrid.tableHandle).width() + difference );
+
+					// Increment or decrement table width on difference var
 
 					// Return old opacity, left and right indent
 					$(liveGrid.activeResizeHandle).css({'opacity': 0, 'left': 'inherit', 'right': liveGrid.activeResizeHandleRightIndent});
