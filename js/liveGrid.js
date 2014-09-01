@@ -1,3 +1,4 @@
+var i =0;
 // Global params
 var liveGrid = {
 
@@ -16,58 +17,74 @@ jQuery.fn.liveGrid = function(params){
 		if(params.colsResize){
 
 			// Add to all <th> resize-handle elements
+			var len = $(this.selector +' th').length; 
 			$(this.selector +' th').each(function(index){
 
-				// Add class to each <th>
-				$(this).addClass('lg-th');
+				// All elements except last
+				if(index < len - 1){
 
-				// Create a resize-handle element
-				var resizeHandle = $('<div class="lg-resizeHandle">');
+					// Add class to each <th>
+					$(this).addClass('lg-th');
 
-				// And append resize-handle element
-				$(this).append(resizeHandle)
-				
-				// Calculate right and top indent
-				var borderSpace = 0,
-					borderWidth = 0,
-					rightIndent = 0,
-					topIndent = 0,
-					height = 0;
+					// Set a width
+					$(this).css('width', $(this).width());
 
-				// Get a table border spacing
-				borderSpace = Number( $(this).css('border-collapse') == 'collapse' ? 1 : $(this).css('border-spacing').split(' ')[0].replace('px', '') );
+					// Create a resize-handle element
+					var resizeHandle = $('<div class="lg-resizeHandle">');
 
-				// Get a <th> border width
-				borderWidth = Number( $(this).css('border-left-width').replace('px', '') ) + Number( $(this).css('border-right-width').replace('px', '') );
+					// And append resize-handle element
+					$(this).append(resizeHandle)
+					
+					// Calculate right and top indent
+					var borderSpace = 0,
+						borderWidth = 0,
+						rightIndent = 0,
+						topIndent = 0,
+						height = 0;
 
-				// Calculate right indent
-				rightIndent = ( (borderSpace + borderWidth) / 2 ) + ( $(resizeHandle).width() / 2 );
+					// Get a table border spacing
+					borderSpace = Number( $(this).css('border-collapse') == 'collapse' ? 1 : $(this).css('border-spacing').split(' ')[0].replace('px', '') );
 
-				// Calculate top indent(table border space + <th> border top width)
-				topIndent = Number(borderSpace) + Number( $(this).css('border-top-width').replace('px', '') );				
+					// Get a <th> border width
+					borderWidth = Number( $(this).css('border-left-width').replace('px', '') ) + Number( $(this).css('border-right-width').replace('px', '') );
 
-				// Calculate height
-				height = $(this).parent().parent().height();
+					// Calculate right indent
+					rightIndent = ( (borderSpace + borderWidth) / 2 ) + ( $(resizeHandle).width() / 2 );
 
-				// Set right, top indent and height to resize-handle element
-				$(resizeHandle).css({'right': '-'+ rightIndent +'px', 'top': '-'+ topIndent +'px', 'height': height +'px'});
+					// Calculate top indent(table border space + <th> border top width)
+					topIndent = Number(borderSpace) + Number( $(this).css('border-top-width').replace('px', '') );				
 
-				// Add event to resize-handle element
-				$(resizeHandle).on('mousedown', function(e){
-					$(this).css('opacity', 1);
-					liveGrid.colsResizeActivated = true;
-					liveGrid.activeResizeHandle = this;
-					liveGrid.activeResizeHandleRightIndent = $(this).css('right');
-					$(this).css('right', 0);
-				});
+					// Calculate height
+					height = $(this).parent().parent().height();
+
+					// Set right, top indent and height to resize-handle element
+					$(resizeHandle).css({'right': '-'+ rightIndent +'px', 'top': '-'+ topIndent +'px', 'height': height +'px'});
+
+					// Add event to resize-handle element
+					$(resizeHandle).on('mousedown', function(e){
+
+						// Set params
+						$(this).css('opacity', 1);
+						liveGrid.colsResizeActivated = true;
+						liveGrid.activeResizeHandle = this;
+						liveGrid.activeResizeHandleRightIndent = $(this).css('right');
+//						$(this).css('right', 0);
+
+						// Add temporary class to table
+						$(this).parent().parent().parent().addClass('lg-noselect');
+					});
+				}
 			});
 
 			// Add events to table
 			$(this).on('mousemove', function(e){
 
 				// If cols resize activated
-				if(liveGrid.colsResizeActivated){					
-					$(liveGrid.activeResizeHandle).css('left', e.clientX - $(liveGrid.activeResizeHandle).parent().offset().left);
+				if( liveGrid.colsResizeActivated && (e.toElement.nodeName == 'TH' || e.toElement.nodeName == 'TD') ){
+					$(liveGrid.activeResizeHandle).css('right', 'inherit');
+
+					// Calculate left indent. 5 it's a cursor half width
+					$(liveGrid.activeResizeHandle).css('left', e.clientX - $(liveGrid.activeResizeHandle).parent().offset().left - 5);
 				}
 			});
 
@@ -84,6 +101,9 @@ jQuery.fn.liveGrid = function(params){
 
 					// Return old opacity, left and right indent
 					$(liveGrid.activeResizeHandle).css({'opacity': 0, 'left': 'inherit', 'right': liveGrid.activeResizeHandleRightIndent});
+
+					// Remove temporary class from table
+					$(liveGrid.activeResizeHandle).parent().parent().parent().removeClass('lg-noselect');
 				}
 			});
 		}

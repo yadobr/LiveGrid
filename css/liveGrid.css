@@ -1,7 +1,6 @@
 .lg-th{
 	position: relative;
 	min-width: 50px;
-	-webkit-user-select: none;
 }
 .lg-resizeHandle{
 	position: absolute;
@@ -16,6 +15,7 @@
 	cursor: col-resize;
 	z-index: 900;
 }
-.lg-sepatator{
-
+.lg-noselect{
+	-webkit-user-select: none;
+	cursor: col-resize;
 }
