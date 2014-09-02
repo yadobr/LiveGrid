@@ -8,12 +8,8 @@
 	<script src="js/liveGrid.js"></script>
 
 	<script>
-		/*window.onload = function(){
-			var lg = new LiveGrid({sel: 'table', colsResize: true});
-		}*/
-
 		$(document).ready(function(){
-			$('table').liveGrid({colsResize: true});
+			$('table').liveGrid({ colsResize: true, saveColsSize:{uniqUserID: 'test-user', uniqTableID: '#test-table'} });
 		});
 	</script>
 	<style>
@@ -31,33 +27,35 @@
 <body>
 
 <div class="lg-wrap">
-<table width=600 height=200 cellspacing=0>	
-	<tr>
-		<th>head1</th>
-		<th>head2</th>
-		<th>head3</th>
-		<th>head4</th>
-		<th>head5</th>
-		<th>head6</th>
-	</tr>
-	<tr>
-		<td>content1</td>
-		<td>content2</td>
-		<td>content3</td>
-		<td>content4</td>
-		<td>content5</td>
-		<td>content6</td>
-	</tr>
-	<tr>
-		<td>content1</td>
-		<td>content2</td>
-		<td>content3</td>
-		<td>content4</td>
-		<td>content5</td>
-		<td>content6</td>
-	</tr>
-</table>
+	<table id="test-table" width=600 height=200 cellspacing=0>	
+		<tr>
+			<th>head1</th>
+			<th>head2</th>
+			<th>head3</th>
+			<th>head4</th>
+			<th>head5</th>
+			<th>head6</th>
+		</tr>
+		<tr>
+			<td>content1</td>
+			<td>content2</td>
+			<td>content3</td>
+			<td>content4</td>
+			<td>content5</td>
+			<td>content6</td>
+		</tr>
+		<tr>
+			<td>content1</td>
+			<td>content2</td>
+			<td>content3</td>
+			<td>content4</td>
+			<td>content5</td>
+			<td>content6</td>
+		</tr>
+	</table>
 </div>
+
+<button onclick="console.log(localStorage.removeItem('test-user'))">Clear local storage</button>
 
 </body>
 </html>

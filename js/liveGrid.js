@@ -1,4 +1,4 @@
-var i =0;
+
 // Global params
 var liveGrid = {
 	tableHandle: undefined,
@@ -6,7 +6,13 @@ var liveGrid = {
 	// For cols resize
 	colsResizeActivated: false,
 	activeResizeHandle: undefined,
-	activeResizeHandleRightIndent: 0
+	activeResizeHandleRightIndent: 0,
+
+	// For save cols size
+	saveColsSizeActivated: false,
+	uniqUserID: '',
+	uniqTableID: '',
+	colsSize: {}
 };
 
 
@@ -16,6 +22,11 @@ jQuery.fn.liveGrid = function(params){
 
 		// Remember table handle
 		liveGrid.tableHandle = this;
+
+		// Add uniq ID to <th>
+		$(this.selector +' th').each(function(index){
+			$(this).attr('lg-th-id', 'th'+index);
+		});
 
 		// Cols resize
 		if(params.colsResize){
@@ -96,7 +107,7 @@ jQuery.fn.liveGrid = function(params){
 
 				// If cols resize activated
 				if(liveGrid.colsResizeActivated){
-					liveGrid.colsResizeActivated = false;						
+					liveGrid.colsResizeActivated = false;			
 
 					// Set a new width to <th>					
 					var difference = Number( $(liveGrid.activeResizeHandle).css('left').replace('px', '') - $(liveGrid.activeResizeHandle).parent().width() );			
@@ -114,6 +125,74 @@ jQuery.fn.liveGrid = function(params){
 					$(liveGrid.activeResizeHandle).parent().parent().parent().removeClass('lg-noselect');
 				}
 			});
+		}
+
+		// Save cols size
+		if(typeof params.saveColsSize == 'object'){
+			if(params.saveColsSize.uniqUserID && params.saveColsSize.uniqTableID){
+				liveGrid.saveColsSizeActivated = true;
+				liveGrid.uniqUserID = params.saveColsSize.uniqUserID;
+				liveGrid.uniqTableID = params.saveColsSize.uniqTableID;				
+
+				// If user does not exists...
+				if( localStorage.getItem(liveGrid.uniqUserID) == null ){
+
+					// ...then create a user and fill colsSize object
+					$(liveGrid.tableHandle).find('th').each(function(index){
+						liveGrid.colsSize[$(this).attr('lg-th-id')] = $(this).width();
+					});
+
+					// Create a user params object
+					var userParams = {};
+					userParams[liveGrid.uniqTableID] = { tableWidth: $(liveGrid.tableHandle).width(),  colsSize: liveGrid.colsSize };
+					localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
+				}
+
+				// If user exists then load user params (cols size, table width, etc.)
+				else{
+					var userParams = JSON.parse(localStorage.getItem(liveGrid.uniqUserID));
+
+					// Are looking for, whether there is a our table
+					for( key in userParams ){
+
+						// If there is a math
+						if( $(key).get(0) == $(liveGrid.tableHandle.selector).get(0) ){
+
+							// Load a table width
+							$(liveGrid.tableHandle).width( userParams[key].tableWidth );
+
+							// Load a cols width
+							liveGrid.colsSize = userParams[key].colsSize;
+
+							// Set a cols width
+							$(liveGrid.tableHandle).find('th').each(function(index){							
+								$(this).width( liveGrid.colsSize[$(this).attr('lg-th-id')] );
+							});
+
+							break;
+						}
+					}
+				}
+
+				// Save the cols size
+				$(liveGrid.tableHandle).on('mouseup', function(){
+
+					// If cols resize activated
+					if(!liveGrid.colsResizeActivated && liveGrid.saveColsSizeActivated){
+
+						// Save new sizes
+						liveGrid.colsSize[$(liveGrid.activeResizeHandle).parent().attr('lg-th-id')] = $(liveGrid.activeResizeHandle).parent().width();
+
+						// Create a object
+						var userParams = {};
+						userParams[liveGrid.uniqTableID] = { tableWidth: $(liveGrid.tableHandle).width(),  colsSize: liveGrid.colsSize };
+						localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
+
+						// Save						
+						localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
+					}
+				});
+			}
 		}
 	}	
 }
