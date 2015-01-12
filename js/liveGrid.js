@@ -94,7 +94,9 @@ jQuery.fn.liveGrid = function(params){
 			$(this).on('mousemove', function(e){
 
 				// If cols resize activated
-				if( liveGrid.colsResizeActivated && (e.toElement.nodeName == 'TH' || e.toElement.nodeName == 'TD') ){
+				var el = e.toElement || e.target;
+				
+				if( liveGrid.colsResizeActivated && (el.nodeName == 'TH' || el.nodeName == 'TD') ){
 					$(liveGrid.activeResizeHandle).css('right', 'inherit');
 
 					// Calculate left indent. 5 it's a cursor half width
