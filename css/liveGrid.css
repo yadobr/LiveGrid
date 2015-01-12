@@ -1,5 +1,5 @@
 .lg-wrap{
-	width: 500px;
+	min-width: 500px;
 	overflow-x: scroll;
 }
 .lg-th{
@@ -23,6 +23,7 @@
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-o-user-select: none;
+	-ms-user-select: none;
 	user-select: none;
 	cursor: col-resize;
 }
