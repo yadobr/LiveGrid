@@ -1,24 +1,28 @@
 .lg-wrap{
-	width: 500px;
-	overflow-x: scroll;
+
 }
-.lg-th{
-	position: relative;
-	min-width: 50px;
+.lg-wrap > table{
+	border-collapse: collapse;
+}
+.lg-wrap > table th, .lg-wrap > table td{
+	box-sizing: border-box;
 }
 .lg-resizeHandle{
 	position: absolute;
-	box-sizing: border-box;
-	right: 0;
+	display: block;
+	content: '';
 	top: 0;
-	width: 2px; /*Must be in px*/
-	height: auto;
-	/*border: 1px solid red;*/
-	background-color: black;
-	opacity: 0;
+	left: 0;
+	/*left: calc(100% - 2px);*/
+	width: 5px;
+	height: 100%;
+	box-sizing: border-box;
+	background-color: red;
 	cursor: col-resize;
-	z-index: 900;
+	z-index: 100;
+	opacity: 0.3;
 }
+
 .lg-noselect{
 	-webkit-user-select: none;
 	-moz-user-select: none;

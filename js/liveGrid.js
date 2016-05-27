@@ -1,200 +1,243 @@
+//
+// LiveGrid v.2.0
+//
+(function($)
+{
+	$.fn.liveGrid = function(params)
+	{
+		var table = this,             // Таблица
+            thList,			          // Все <th> таблицы
+            rhList,			          // Все Resize Handles таблицы
+			rh,                       // Resize Handle, который находится в <th>, потянув за который, можно изменить ширину
+            bResizeActivated = false, // Флаг, сообщающий об активации изменения ширины
+            currentRh,                // Resize Handle за который потянули,
+            thWidth,                  // Ширина th
+            thListWidth = 0,          // Ширина Всех th
+            userID,                   // Идентификатор пользователя. Берется из параметров
+            tableID,                  // Идентификатор таблицы. Берется из параметров
+            userIDFromLocalStorage;   // Объект пользователя, с размерами колонок таблиц. Берется из LocalStorage
 
-// Global params
-var liveGrid = {
-	tableHandle: undefined,
+		// Если по селектору выбирается объект
+		if(table.length == 1)
+		{
+			// Проверяем, есть ли у таблицы th
+			thList = this.find('th');
 
-	// For cols resize
-	colsResizeActivated: false,
-	activeResizeHandle: undefined,
-	activeResizeHandleRightIndent: 0,
+			if(thList.length > 0)
+			{
+                // Проверям, есть ли в localStorage объект с этим именем пользоватлея и в нем лежит объект с именем таблицы.
+                // Если чего-то из этого нет, то создаем
+                if(typeof params.saveColsSize == 'object')
+                {
+                    if(
+                        params.saveColsSize.uniqUserID != undefined &&
+                        params.saveColsSize.uniqTableID != undefined
+                    )
+                    {
+                        userID = params.saveColsSize.uniqUserID;
+                        tableID = params.saveColsSize.uniqTableID;
 
-	// For save cols size
-	saveColsSizeActivated: false,
-	uniqUserID: '',
-	uniqTableID: '',
-	colsSize: {}
-};
+                        userIDFromLocalStorage = JSON.parse(localStorage.getItem(userID));
 
+                        // Проверяем, есть ли в localStorage объект с именем пользователя
+                        // и если нет, то создаем
+                        userIDFromLocalStorage =
+                            userIDFromLocalStorage == null ?
+                                (userIDFromLocalStorage = {}) :
+                                (userIDFromLocalStorage);
 
-// LiveGrid
-jQuery.fn.liveGrid = function(params){
-	if(typeof params == 'object'){
+                        // Если объект есть, то проверяем, есть ли в нем объект с именем таблицы
+                        // и если нет, то создаем
+                        userIDFromLocalStorage[tableID] =
+                            userIDFromLocalStorage[tableID] == undefined ?
+                                (userIDFromLocalStorage[tableID] = {}) :
+                                (userIDFromLocalStorage[tableID]);
+                    }
 
-		// Remember table handle
-		liveGrid.tableHandle = this;
+                    // Устанавливаем ширину таблицы
+                    table.width(
+                        userIDFromLocalStorage[tableID] != undefined ?
+                            userIDFromLocalStorage[tableID].tableWidth :
+                            'auto'
+                    )
+                }
 
-		// Add uniq ID to <th>
-		$(this.selector +' th').each(function(index){
-			$(this).attr('lg-th-id', 'th'+index);
-		});
+                // Проверяем, сохранены ли размеры колонок, если нет, то проставляем ширину каждой <th> исходя из ее размеров
+                // Также, создаем элементы, которые будут служить рукояткой изменения ширины
+				thList.each(function(i)
+				{
+                    thWidth = 0;
 
-		// Cols resize
-		if(params.colsResize){
+                    // Учитываем ширину границ и padding
+                    var thBorderWidth = Number($(this).css('border-width').replace('px', '')),
+                        thPaddingLeft = Number($(this).css('padding-left').replace('px', '')),
+                        thPaddingRight = Number($(this).css('padding-right').replace('px', ''));
 
-			// Add to all <th> resize-handle elements
-			var len = $(this.selector +' th').length; 
-			$(this.selector +' th').each(function(index){
+                    thWidth = Object.keys(userIDFromLocalStorage[tableID]).length != 0 ?
+                        (userIDFromLocalStorage[tableID].colsWidth[i]) :
+                        ($(this).outerWidth()); // OuterWidth = width + border + padding
 
-				// All elements except last
-				if(index < len - 1){
+                    //($(this).outerWidth() + thBorderWidth * 2 + thPaddingLeft + thPaddingRight);
 
-					// Add class to each <th>
-					$(this).addClass('lg-th');
+                    thListWidth += thWidth;
 
-					// Set a width
-					$(this).css('width', $(this).width());
+                    $(this).css('width', thWidth);
 
-					// Create a resize-handle element
-					var resizeHandle = $('<div class="lg-resizeHandle">');
+                    // Скрыть колонку
+                    $(this).on('click', colHide);
 
-					// And append resize-handle element
-					$(this).append(resizeHandle)
-					
-					// Calculate right and top indent
-					var borderSpace = 0,
-						borderWidth = 0,
-						rightIndent = 0,
-						topIndent = 0,
-						height = 0;
+					rh = $('<div class="lg-resizeHandle">');
+                    $(this).append(rh);
+                    rh.css({
+                        'left': $(this).offset().left + $(this).width() + rh.width() / 2.5,
+                        'top': table.offset().top
+                    });
+					rh.height(table.height());
 
-					// Get a table border spacing
-					borderSpace = Number( $(this).css('border-collapse') == 'collapse' ? 1 : $(this).css('border-spacing').split(' ')[0].replace('px', '') );
-
-					// Get a <th> border width
-					borderWidth = Number( $(this).css('border-left-width').replace('px', '') ) + Number( $(this).css('border-right-width').replace('px', '') );
-
-					// Calculate right indent
-					rightIndent = ( (borderSpace + borderWidth) / 2 ) + ( $(resizeHandle).width() / 2 );
-
-					// Calculate top indent(table border space + <th> border top width)
-					topIndent = Number(borderSpace) + Number( $(this).css('border-top-width').replace('px', '') );				
-
-					// Calculate height
-					height = $(this).parent().parent().height();
-
-					// Set right, top indent and height to resize-handle element
-					$(resizeHandle).css({'right': '-'+ rightIndent +'px', 'top': '-'+ topIndent +'px', 'height': height +'px'});
-
-					// Add event to resize-handle element
-					$(resizeHandle).on('mousedown', function(e){
-
-						// Set params
-						$(this).css('opacity', 1);						
-						liveGrid.colsResizeActivated = true;
-						liveGrid.activeResizeHandle = this;
-						liveGrid.activeResizeHandleRightIndent = $(this).css('right');
-
-						// Add temporary class to table
-						$(this).parent().parent().parent().addClass('lg-noselect');
-					});
-				}
-			});
-
-			// Add events to table
-			$(this).on('mousemove', function(e){
-
-				// If cols resize activated
-				var el = e.toElement || e.target;
-				
-				if( liveGrid.colsResizeActivated && (el.nodeName == 'TH' || el.nodeName == 'TD') ){
-					$(liveGrid.activeResizeHandle).css('right', 'inherit');
-
-					// Calculate left indent. 5 it's a cursor half width
-					$(liveGrid.activeResizeHandle).css('left', e.clientX - $(liveGrid.activeResizeHandle).parent().offset().left - 5);
-				}
-			});
-
-			// Add events to table
-			$(this).on('mouseup', function(e){
-
-				// If cols resize activated
-				if(liveGrid.colsResizeActivated){
-					liveGrid.colsResizeActivated = false;			
-
-					// Set a new width to <th>					
-					var difference = Number( $(liveGrid.activeResizeHandle).css('left').replace('px', '') - $(liveGrid.activeResizeHandle).parent().width() );			
-					$(liveGrid.activeResizeHandle).parent().width( $(liveGrid.activeResizeHandle).parent().width() + difference );
-
-					// Set a new width to table
-					$(liveGrid.tableHandle).width( $(liveGrid.tableHandle).width() + difference );
-
-					// Increment or decrement table width on difference var
-
-					// Return old opacity, left and right indent
-					$(liveGrid.activeResizeHandle).css({'opacity': 0, 'left': 'inherit', 'right': liveGrid.activeResizeHandleRightIndent});
-
-					// Remove temporary class from table
-					$(liveGrid.activeResizeHandle).parent().parent().parent().removeClass('lg-noselect');
-				}
-			});
-		}
-
-		// Save cols size
-		if(typeof params.saveColsSize == 'object'){
-			if(params.saveColsSize.uniqUserID && params.saveColsSize.uniqTableID){
-				liveGrid.saveColsSizeActivated = true;
-				liveGrid.uniqUserID = params.saveColsSize.uniqUserID;
-				liveGrid.uniqTableID = params.saveColsSize.uniqTableID;				
-
-				// If user does not exists...
-				if( localStorage.getItem(liveGrid.uniqUserID) == null ){
-
-					// ...then create a user and fill colsSize object
-					$(liveGrid.tableHandle).find('th').each(function(index){
-						liveGrid.colsSize[$(this).attr('lg-th-id')] = $(this).width();
-					});
-
-					// Create a user params object
-					var userParams = {};
-					userParams[liveGrid.uniqTableID] = { tableWidth: $(liveGrid.tableHandle).width(),  colsSize: liveGrid.colsSize };
-					localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
-				}
-
-				// If user exists then load user params (cols size, table width, etc.)
-				else{
-					var userParams = JSON.parse(localStorage.getItem(liveGrid.uniqUserID));
-
-					// Are looking for, whether there is a our table
-					for( key in userParams ){
-
-						// If there is a math
-						if( $(key).get(0) == $(liveGrid.tableHandle.selector).get(0) ){
-
-							// Load a table width
-							$(liveGrid.tableHandle).width( userParams[key].tableWidth );
-
-							// Load a cols width
-							liveGrid.colsSize = userParams[key].colsSize;
-
-							// Set a cols width
-							$(liveGrid.tableHandle).find('th').each(function(index){							
-								$(this).width( liveGrid.colsSize[$(this).attr('lg-th-id')] );
-							});
-
-							break;
-						}
-					}
-				}
-
-				// Save the cols size
-				$(liveGrid.tableHandle).on('mouseup', function(){
-
-					// If cols resize activated
-					if(!liveGrid.colsResizeActivated && liveGrid.saveColsSizeActivated){
-
-						// Save new sizes
-						liveGrid.colsSize[$(liveGrid.activeResizeHandle).parent().attr('lg-th-id')] = $(liveGrid.activeResizeHandle).parent().width();
-
-						// Create a object
-						var userParams = {};
-						userParams[liveGrid.uniqTableID] = { tableWidth: $(liveGrid.tableHandle).width(),  colsSize: liveGrid.colsSize };
-						localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
-
-						// Save						
-						localStorage.setItem( liveGrid.uniqUserID, JSON.stringify(userParams) );
-					}
+                    // При нажатии на Resize Handle активируем событие mousemove у таблицы
+                    rh.on('mousedown', function()
+                    {
+                        bResizeActivated = true;
+                        currentRh = $(this);
+                    });
 				});
+
+                table.width(thListWidth);
+
+                // Запоминаем все Resize Handles
+                rhList = this.find('.lg-resizeHandle');
+
+                // Привязываем к таблице события
+                // Изменения ширины
+                $(document).on('mousemove', function(e)
+                {
+                    // Если нажали на Resize Handle
+                    if(bResizeActivated)
+                    {
+                        table.width('auto');
+
+                        // Устанавливаем новые координаты Resize Handle
+                        currentRh.css('left', e.clientX + $(window).scrollLeft());
+
+                        // Устанавливаем новую ширину колонки
+                        currentRh.parent().width(e.clientX + $(window).scrollLeft() - currentRh.parent().offset().left);
+
+                        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
+                        // Изменения ширины таблицы и обертки
+                        calculateWidth();
+                        console.log('adasdasdsdasd');
+                        table.addClass('lg-noselect');
+                    }
+                });
+
+                // Окончание изменения ширины
+                $(document).on('mouseup', function()
+                {
+                    if(typeof params == 'object' && bResizeActivated)
+                    {
+                        // Сохраняем ширину колонок в localStorage
+                        if(typeof params.saveColsSize == 'object')
+                        {
+                            var colsWidthArr = []; // Тут накапливается ширина  всех th
+
+                            // Считаем ширину каждой колонки
+                            thList.each(function()
+                            {
+                                colsWidthArr.push($(this).css('width'));
+                            });
+
+                            // Заносим все в localStorage
+                            userIDFromLocalStorage[tableID].tableWidth = table.width();
+                            userIDFromLocalStorage[tableID].colsWidth = colsWidthArr;
+                            localStorage.setItem(userID, JSON.stringify(userIDFromLocalStorage));
+                        }
+
+                        // Вызываем Callback
+                        if(typeof params.callback == 'function')
+                        {
+                            console.log(currentRh.parent());
+                            var data = {
+                                table: table,
+                                index: $(currentRh.parent()).index(),
+                                width: currentRh.parent().css('width').replace('px', '')
+                            };
+                            params.callback(data);
+                        }
+                    }
+
+                    // Сбрасываем параметры
+                    bResizeActivated = false;
+                    currentRh = undefined;
+                    table.removeClass('lg-noselect');
+
+                });
+			}
+			else
+			{
+				console.log('LiveGrid: table required a th tags');
 			}
 		}
-	}	
-}
+		else
+		{
+			console.log('LiveGrid: Wrong table selector');
+		}
+
+        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
+        // Изменения ширины таблицы и обертки
+        function calculateWidth()
+        {
+            // Считаем ширину всех th. Это будет ширина таблицы
+            thListWidth = 0;
+            thList.each(function(i)
+            {
+                // Не учитываем скрытые колонки
+                if($(this).css('display') != 'none')
+                {
+                    thWidth = 0;
+
+                    thWidth = $(this).outerWidth();
+
+                    thListWidth += thWidth;
+
+                    // Пересчитываем координаты всех Resize Handles
+                    $(rhList[i]).css(
+                    {
+                        'left': $(this).offset().left + $(this).outerWidth() - $(rhList[i]).width() / 2.5,
+                        'top': table.offset().top
+                    });
+                }
+            });
+
+            // Устанавливаем ширину таблице и ее обертки. Иначе таблица не будет расширятся за пределы страницы
+            table.parent().width(thListWidth + 100);
+            table.width(thListWidth);
+        }
+
+        // Функция скрытия колонки
+        function colHide()
+        {
+            var th = $(this),          // th, по которому кликнули
+                thIndex = th.index(),  // Порядковый номер колонки
+                tr = table.find('tr'), // Все tr в таблице
+                td;                    // Все td в tr
+
+            th.hide();
+
+            // Ищем все строки в таблице
+            // Ищем все ячейки в этой строке
+            // Затем, скрываем все ячейки, порядковый номер которых равен thIndex
+            tr.each(function()
+            {
+                td = $(this).find('td');
+                td.each(function(index)
+                {
+                    if(index == thIndex)
+                        $(this).hide();
+                });
+            });
+
+            // Пересчитываем ширину обертки, таблицы, th и Resize Handles
+            calculateWidth();
+        }
+	};
+})(jQuery);

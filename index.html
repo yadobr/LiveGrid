@@ -3,31 +3,37 @@
 <head>
 	<title>LiveGrid</title>
 	<meta charset="utf-8">
- 	<link href="css/liveGrid.css" rel="stylesheet"> 
- 	<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script src="js/liveGrid.js"></script>
+ 	<link href="css/liveGrid.css" rel="stylesheet">
 
+ 	<script src="js/jquery.min.js"></script>
+	<script src="js/liveGrid.js"></script>
 	<script>
-		$(document).ready(function(){
-			$('table').liveGrid({ colsResize: true, saveColsSize:{uniqUserID: 'test-user', uniqTableID: '#test-table'} });
+		$(document).ready(function()
+		{
+			$('#table1').liveGrid(
+			{
+				// Объект, наличие которого включает механизм сохранения колонок
+				saveColsSize:
+				{
+					uniqUserID: 'user1',
+					uniqTableID: '#table1'
+				},
+
+				// Callback вызывается, когда пользователь изменил ширину колонки
+				callback: function(data)
+				{
+					console.log(data.table); // Handle таблицы, ширину колонки которой изменили
+					console.log(data.index); // Порядковый номер столбца в таблице
+					console.log(data.width); // Новая ширина столбца
+				}
+			});
 		});
 	</script>
-	<style>
-		table{
-			/*border: 1px solid gray;*/
-		}
-		table th{
-			border: 5px solid gray;
-		}
-		table td{
-			border: 1px solid gray;
-		}
-	</style>
 </head>
 <body>
 
 <div class="lg-wrap">
-	<table id="test-table" width=600 height=200 cellspacing=0>	
+	<table id="table1" border="1" height=200>
 		<tr>
 			<th>head1</th>
 			<th>head2</th>
@@ -55,7 +61,7 @@
 	</table>
 </div>
 
-<button onclick="console.log(localStorage.removeItem('test-user'))">Clear local storage</button>
+<button onclick="console.log(localStorage.removeItem('user1'))">Clear local storage</button>
 
 </body>
 </html>
