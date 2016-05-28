@@ -1,3 +1,12 @@
+.lg-wrap{
+	display: inline-block;
+
+	-webkit-transition: width 5s;
+	-moz-transition: width 5s;
+	-ms-transition: width 5s;
+	-o-transition: width 5s;
+	transition: width 5s;
+}
 .lg-wrap > table{
 	border-collapse: collapse;
 }
