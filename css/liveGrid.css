@@ -24,7 +24,7 @@
 	background-color: red;
 	cursor: col-resize;
 	z-index: 100;
-	opacity: 0.3;
+	opacity: 0;
 }
 
 .lg-noselect{
