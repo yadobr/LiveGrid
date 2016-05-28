@@ -61,7 +61,30 @@
 	</table>
 </div>
 
-<button onclick="console.log(localStorage.removeItem('user1'))">Clear local storage</button>
+<button onclick="console.log(localStorage.removeItem('user1'))">Очистить localStorage</button>
+
+<style>
+	button{
+		width: 147px;
+	}
+</style>
+
+<p>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 0)">Скрыть колонку 0</button>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 1)">Скрыть колонку 1</button>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 2)">Скрыть колонку 2</button>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 3)">Скрыть колонку 3</button>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 4)">Скрыть колонку 4</button>
+	<button onclick="$.liveGrid.hide('user1', '#table1', 5)">Скрыть колонку 5</button>
+</p>
+<p>
+	<button onclick="$.liveGrid.show('user1', '#table1', 0)">Показать колонку 0</button>
+	<button onclick="$.liveGrid.show('user1', '#table1', 1)">Показать колонку 1</button>
+	<button onclick="$.liveGrid.show('user1', '#table1', 2)">Показать колонку 2</button>
+	<button onclick="$.liveGrid.show('user1', '#table1', 3)">Показать колонку 3</button>
+	<button onclick="$.liveGrid.show('user1', '#table1', 4)">Показать колонку 4</button>
+	<button onclick="$.liveGrid.show('user1', '#table1', 5)">Показать колонку 5</button>
+</p>
 
 </body>
 </html>

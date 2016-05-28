@@ -7,7 +7,6 @@
 	{
 		var table = this,             // Таблица
             thList,			          // Все <th> таблицы
-            rhList,			          // Все Resize Handles таблицы
 			rh,                       // Resize Handle, который находится в <th>, потянув за который, можно изменить ширину
             bResizeActivated = false, // Флаг, сообщающий об активации изменения ширины
             currentRh,                // Resize Handle за который потянули,
@@ -27,71 +26,26 @@
 			{
                 // Проверям, есть ли в localStorage объект с этим именем пользоватлея и в нем лежит объект с именем таблицы.
                 // Если чего-то из этого нет, то создаем
-                if(typeof params.saveColsSize == 'object')
-                {
-                    if(
-                        params.saveColsSize.uniqUserID != undefined &&
-                        params.saveColsSize.uniqTableID != undefined
-                    )
-                    {
-                        userID = params.saveColsSize.uniqUserID;
-                        tableID = params.saveColsSize.uniqTableID;
+                checkLocalStorage();
 
-                        userIDFromLocalStorage = JSON.parse(localStorage.getItem(userID));
-
-                        // Проверяем, есть ли в localStorage объект с именем пользователя
-                        // и если нет, то создаем
-                        userIDFromLocalStorage =
-                            userIDFromLocalStorage == null ?
-                                (userIDFromLocalStorage = {}) :
-                                (userIDFromLocalStorage);
-
-                        // Если объект есть, то проверяем, есть ли в нем объект с именем таблицы
-                        // и если нет, то создаем
-                        userIDFromLocalStorage[tableID] =
-                            userIDFromLocalStorage[tableID] == undefined ?
-                                (userIDFromLocalStorage[tableID] = {}) :
-                                (userIDFromLocalStorage[tableID]);
-                    }
-
-                    // Устанавливаем ширину таблицы
-                    table.width(
-                        userIDFromLocalStorage[tableID] != undefined ?
-                            userIDFromLocalStorage[tableID].tableWidth :
-                            'auto'
-                    )
-                }
-
-                // Проверяем, сохранены ли размеры колонок, если нет, то проставляем ширину каждой <th> исходя из ее размеров
+                // Проверяем, сохранены ли размеры колонок и их видимость, и если нет, то проставляем ширину каждой <th> исходя из ее размеров
                 // Также, создаем элементы, которые будут служить рукояткой изменения ширины
 				thList.each(function(i)
 				{
+                    // Считаем ширину этой th
                     thWidth = 0;
 
-                    // Учитываем ширину границ и padding
-                    var thBorderWidth = Number($(this).css('border-width').replace('px', '')),
-                        thPaddingLeft = Number($(this).css('padding-left').replace('px', '')),
-                        thPaddingRight = Number($(this).css('padding-right').replace('px', ''));
-
-                    thWidth = Object.keys(userIDFromLocalStorage[tableID]).length != 0 ?
+                    thWidth = userIDFromLocalStorage[tableID].colsWidth.length != 0 ?
                         (userIDFromLocalStorage[tableID].colsWidth[i]) :
                         ($(this).outerWidth()); // OuterWidth = width + border + padding
-
-                    //($(this).outerWidth() + thBorderWidth * 2 + thPaddingLeft + thPaddingRight);
 
                     thListWidth += thWidth;
 
                     $(this).css('width', thWidth);
 
-                    // Скрыть колонку
-                    $(this).on('click', colHide);
-
+                    // Создаем Resize Handle у этой th
 					rh = $('<div class="lg-resizeHandle">');
                     $(this).append(rh);
-                    rh.css({
-                        'left': $(this).offset().left + $(this).width() + rh.width() / 2.5,
-                        'top': table.offset().top
-                    });
 					rh.height(table.height());
 
                     // При нажатии на Resize Handle активируем событие mousemove у таблицы
@@ -104,8 +58,12 @@
 
                 table.width(thListWidth);
 
-                // Запоминаем все Resize Handles
-                rhList = this.find('.lg-resizeHandle');
+                // Расчитываем положение всех Resize Handles
+                $.liveGrid.calc(userID, tableID);
+
+                // Скрываем скрытые колонки
+                for(var n = 0; n < userIDFromLocalStorage[tableID].hiddenCols.length; n++)
+                    $.liveGrid.hide(userID, tableID, userIDFromLocalStorage[tableID].hiddenCols[n], true);
 
                 // Привязываем к таблице события
                 // Изменения ширины
@@ -124,8 +82,8 @@
 
                         // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
                         // Изменения ширины таблицы и обертки
-                        calculateWidth();
-                        console.log('adasdasdsdasd');
+                        $.liveGrid.calc(userID, tableID);
+
                         table.addClass('lg-noselect');
                     }
                 });
@@ -135,27 +93,12 @@
                 {
                     if(typeof params == 'object' && bResizeActivated)
                     {
-                        // Сохраняем ширину колонок в localStorage
-                        if(typeof params.saveColsSize == 'object')
-                        {
-                            var colsWidthArr = []; // Тут накапливается ширина  всех th
-
-                            // Считаем ширину каждой колонки
-                            thList.each(function()
-                            {
-                                colsWidthArr.push($(this).css('width'));
-                            });
-
-                            // Заносим все в localStorage
-                            userIDFromLocalStorage[tableID].tableWidth = table.width();
-                            userIDFromLocalStorage[tableID].colsWidth = colsWidthArr;
-                            localStorage.setItem(userID, JSON.stringify(userIDFromLocalStorage));
-                        }
+                        // Сохраняем ширину колонок и их видимость в localStorage
+                        $.liveGrid.save(userID, tableID);
 
                         // Вызываем Callback
                         if(typeof params.callback == 'function')
                         {
-                            console.log(currentRh.parent());
                             var data = {
                                 table: table,
                                 index: $(currentRh.parent()).index(),
@@ -182,62 +125,298 @@
 			console.log('LiveGrid: Wrong table selector');
 		}
 
-        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
-        // Изменения ширины таблицы и обертки
-        function calculateWidth()
+        // Проверям, есть ли в localStorage объект с этим именем пользоватлея и в нем лежит объект с именем таблицы.
+        // Если чего-то из этого нет, то создаем
+        function checkLocalStorage()
         {
-            // Считаем ширину всех th. Это будет ширина таблицы
-            thListWidth = 0;
-            thList.each(function(i)
+            if(typeof params.saveColsSize == 'object')
             {
-                // Не учитываем скрытые колонки
-                if($(this).css('display') != 'none')
+                if(
+                    params.saveColsSize.uniqUserID != undefined &&
+                    params.saveColsSize.uniqTableID != undefined
+                )
                 {
-                    thWidth = 0;
+                    userID = params.saveColsSize.uniqUserID;
+                    tableID = params.saveColsSize.uniqTableID;
 
-                    thWidth = $(this).outerWidth();
+                    userIDFromLocalStorage = JSON.parse(localStorage.getItem(userID));
 
-                    thListWidth += thWidth;
+                    // Проверяем, есть ли в localStorage объект с именем пользователя
+                    // и если нет, то создаем
+                    userIDFromLocalStorage =
+                        userIDFromLocalStorage == null ?
+                            (userIDFromLocalStorage = {}) :
+                            (userIDFromLocalStorage);
 
-                    // Пересчитываем координаты всех Resize Handles
-                    $(rhList[i]).css(
+                    // Если объект есть, то проверяем, есть ли в нем объект с именем таблицы
+                    // и если нет, то создаем
+                    userIDFromLocalStorage[tableID] =
+                        userIDFromLocalStorage[tableID] == undefined ?
+                            (userIDFromLocalStorage[tableID] = {}) :
+                            (userIDFromLocalStorage[tableID]);
+
+                    // Если данных таблицы нет, то инициализируем свойства дефолтными значениями
+                    if(Object.keys(userIDFromLocalStorage[tableID]).length == 0)
                     {
-                        'left': $(this).offset().left + $(this).outerWidth() - $(rhList[i]).width() / 2.5,
-                        'top': table.offset().top
-                    });
+                        userIDFromLocalStorage[tableID].tableWidth = 0;
+                        userIDFromLocalStorage[tableID].colsWidth = [];
+                        userIDFromLocalStorage[tableID].hiddenCols = [];
+                    }
                 }
-            });
 
-            // Устанавливаем ширину таблице и ее обертки. Иначе таблица не будет расширятся за пределы страницы
-            table.parent().width(thListWidth + 100);
-            table.width(thListWidth);
-        }
-
-        // Функция скрытия колонки
-        function colHide()
-        {
-            var th = $(this),          // th, по которому кликнули
-                thIndex = th.index(),  // Порядковый номер колонки
-                tr = table.find('tr'), // Все tr в таблице
-                td;                    // Все td в tr
-
-            th.hide();
-
-            // Ищем все строки в таблице
-            // Ищем все ячейки в этой строке
-            // Затем, скрываем все ячейки, порядковый номер которых равен thIndex
-            tr.each(function()
-            {
-                td = $(this).find('td');
-                td.each(function(index)
-                {
-                    if(index == thIndex)
-                        $(this).hide();
-                });
-            });
-
-            // Пересчитываем ширину обертки, таблицы, th и Resize Handles
-            calculateWidth();
+                // Устанавливаем ширину таблицы
+                table.width(
+                    userIDFromLocalStorage[tableID] != undefined ?
+                        userIDFromLocalStorage[tableID].tableWidth :
+                        'auto'
+                )
+            }
         }
 	};
+
+    // Функции, доступные извне
+    $.liveGrid =
+    {
+        // Скрыть колонку
+        hide: function(userID, tableID, colIndex, bSave)
+        {
+            // Сохранять результат в localStorage или нет
+            bSave =
+                bSave == undefined ?
+                (bSave = false) :
+                (bSave = true);
+
+            // Проверяем входящие параметры
+            if(
+                userID != undefined &&
+                tableID != undefined &&
+                colIndex != undefined
+            )
+            {
+                var table = $(tableID);
+
+                if(tableID.length != 0)
+                {
+                    var trList = table.find('tr'),
+                        thList = table.find('th'),
+                        tdList;
+
+                    if(trList.length != 0 && thList.length != 0)
+                    {
+                        table.width('auto'); // Чтобы колонки не растянулись под указанную в пикселях ширину таблицы
+
+                        var th = $(thList[colIndex]);
+
+                        // Скрываем th
+                        th.length != 0 && th.hide();
+
+                        // Скрываем td
+                        trList.each(function(index)
+                        {
+                            var tdList = $(this).find('td');
+
+                            $(tdList[colIndex]).hide();
+                        });
+
+                        // Сохраняем в localStorage
+                        !bSave && this.save(userID, tableID);
+
+                        // Пересчитываем ширину обертки, таблицы, th и Resize Handles
+                        this.calc(userID, tableID);
+                    }
+                }
+            }
+        },
+
+        // Показать колонку
+        show: function(userID, tableID, colIndex)
+        {
+            if(
+                userID != undefined &&
+                tableID != undefined &&
+                colIndex != undefined
+            )
+            {
+                var table = $(tableID);
+
+                if(tableID.length != 0)
+                {
+                    var trList = table.find('tr'),
+                        thList = table.find('th'),
+                        tdList;
+
+                    if(trList.length != 0 && thList.length != 0)
+                    {
+                        table.width('auto'); // Чтобы колонки не растянулись под указанную в пикселях ширину таблицы
+
+                        var th = $(thList[colIndex]);
+
+                        // Проверка на: "Что если кликнули на "Показать колонку", а она уже показана"
+                        if(th.css('display') != 'none')
+                            return;
+
+                        // Показываем th
+                        th.length != 0 && th.show();
+
+                        // Показываем td
+                        trList.each(function(index)
+                        {
+                            var tdList = $(this).find('td');
+
+                            $(tdList[colIndex]).show();
+                        });
+
+                        // Сохраняем в localStorage
+                        this.save(userID, tableID);
+
+                        // Пересчитываем ширину обертки, таблицы, th и Resize Handles
+                        this.calc(userID, tableID);
+                    }
+                }
+            }
+        },
+
+        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
+        // Изменения ширины таблицы и обертки
+        calc: function(userID, tableID)
+        {
+            if(
+                userID != undefined &&
+                tableID != undefined
+            )
+            {
+                var table = $(tableID);
+
+                if(tableID.length != 0)
+                {
+                    var thList = table.find('th'),
+                        rhList = table.find('.lg-resizeHandle');
+
+                    if(thList.length != 0 && rhList.length != 0)
+                    {
+                        // Считаем ширину всех th. Это будет ширина таблицы
+                        var thListWidth = 0,
+                            thWidth;
+
+                        thList.each(function(i)
+                        {
+                            // Не учитываем скрытые колонки
+                            if($(this).css('display') != 'none')
+                            {
+                                thWidth = 0;
+
+                                thWidth = this.style.width != '' ?
+                                    Number(this.style.width.replace('px','')) :
+                                    $(this).outerWidth();
+
+                                thWidth =
+                                    thWidth < $(this).outerWidth() ?
+                                        ($(this).outerWidth()) :
+                                        (thWidth);
+
+                                thListWidth += thWidth;
+                            }
+                        });
+
+                        setTimeout(function()
+                        {
+                            rhList.each(function(i)
+                            {
+                                // Не учитываем скрытые колонки
+                                if($(thList[i]).css('display') != 'none')
+                                {
+                                    var offsetLeft = $(thList[i]).offset().left,
+                                        thWidth =
+                                            Number($(thList[i])[0].style.width.replace('px', '')) >= $(thList[i]).outerWidth() ?
+                                                (Number($(thList[i])[0].style.width.replace('px', ''))) :
+                                                ($(thList[i]).outerWidth());
+
+                                    $(this).css(
+                                        {
+                                            'left':
+                                            offsetLeft + thWidth - $(this).width() / 2.5,
+                                            'top': table.offset().top
+                                        });
+                                }
+                            });
+                        }, 50);
+
+                        // Устанавливаем ширину таблице и ее обертке
+                        // Иначе таблица не будет расширятся за пределы страницы
+                        table.parent().width(thListWidth + 100);
+                        table.width(thListWidth);
+                    }
+                }
+            }
+        },
+
+        // Сохранить ширину и видимость колонок таблицы в localStorage
+        save: function(userID, tableID)
+        {
+            if(
+                userID != undefined &&
+                tableID != undefined
+            )
+            {
+                var table = $(tableID);
+
+                if (tableID.length != 0)
+                {
+                    var thList = table.find('th');
+
+                    if(thList.length != 0)
+                    {
+                        var colsWidthArr = [], // Тут накапливается ширина  всех th
+                            hiddenColsArr = []; // Тут хранятся все порядковые номера скрытых колонок
+
+                        // Считаем ширину каждой колонки
+                        thList.each(function(i)
+                        {
+                            $(this).css('display') == 'none' && hiddenColsArr.push(i);     // Запоминаем индексы скрытых колонок
+
+                            // Запоминаем ширину колонок
+                            var thWidth =
+                                Number(this.style.width.replace('px', '')) < $(this).outerWidth() ?
+                                    ($(this).outerWidth()) :
+                                    (Number(this.style.width.replace('px', '')));
+
+                            colsWidthArr.push(thWidth);
+                        });
+
+                        //region Проверяем localStorage
+                        var userIDFromLocalStorage = JSON.parse(localStorage.getItem(userID));
+
+                        // Проверяем, есть ли в localStorage объект с именем пользователя
+                        // и если нет, то создаем
+                        userIDFromLocalStorage =
+                            userIDFromLocalStorage == null ?
+                                (userIDFromLocalStorage = {}) :
+                                (userIDFromLocalStorage);
+
+                        // Если объект есть, то проверяем, есть ли в нем объект с именем таблицы
+                        // и если нет, то создаем
+                        userIDFromLocalStorage[tableID] =
+                            userIDFromLocalStorage[tableID] == undefined ?
+                                (userIDFromLocalStorage[tableID] = {}) :
+                                (userIDFromLocalStorage[tableID]);
+
+                        // Если данных таблицы нет, то инициализируем свойства дефолтными значениями
+                        if(Object.keys(userIDFromLocalStorage[tableID]).length == 0)
+                        {
+                            userIDFromLocalStorage[tableID].tableWidth = 0;
+                            userIDFromLocalStorage[tableID].colsWidth = [];
+                            userIDFromLocalStorage[tableID].hiddenCols = [];
+                        }
+                        //endregion
+
+                        // Сохраняем в localStorage
+                        userIDFromLocalStorage[tableID].tableWidth = table.width();
+                        userIDFromLocalStorage[tableID].colsWidth = colsWidthArr;
+                        userIDFromLocalStorage[tableID].hiddenCols = hiddenColsArr;
+                        localStorage.setItem(userID, JSON.stringify(userIDFromLocalStorage));
+                    }
+                }
+            }
+        }
+    };
 })(jQuery);
