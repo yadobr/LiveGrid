@@ -2,18 +2,16 @@
 	border-collapse: collapse;
 }
 .lg-wrap > table th, .lg-wrap > table td{
+	position: relative;
 	box-sizing: border-box;
 }
 .lg-resizeHandle{
 	position: absolute;
 	display: block;
-	content: '';
 	top: 0;
-	left: 0;
-	/*left: calc(100% - 2px);*/
+	left: calc(100% - 2.5px);
 	width: 5px;
 	height: 100%;
-	box-sizing: border-box;
 	background-color: red;
 	cursor: col-resize;
 	z-index: 100;

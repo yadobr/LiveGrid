@@ -86,5 +86,156 @@
 	<button onclick="$.liveGrid.show('user1', '#table1', 5)">Показать колонку 5</button>
 </p>
 
+<br>
+<br>
+<br>
+
+<script>
+	$(document).ready(function()
+	{
+		$('#table2').liveGrid(
+		{
+			// Объект, наличие которого включает механизм сохранения колонок
+			saveColsSize:
+			{
+				uniqUserID: 'user1',
+				uniqTableID: '#table2'
+			},
+
+			// Callback вызывается, когда пользователь изменил ширину колонки
+			callback: function(data)
+			{
+				console.log(data.table); // Handle таблицы, ширину колонки которой изменили
+				console.log(data.index); // Порядковый номер столбца в таблице
+				console.log(data.width); // Новая ширина столбца
+			}
+		});
+
+		$('#table3').liveGrid(
+		{
+			// Объект, наличие которого включает механизм сохранения колонок
+			saveColsSize:
+			{
+				uniqUserID: 'user1',
+				uniqTableID: '#table3'
+			},
+
+			// Callback вызывается, когда пользователь изменил ширину колонки
+			callback: function(data)
+			{
+				console.log(data.table); // Handle таблицы, ширину колонки которой изменили
+				console.log(data.index); // Порядковый номер столбца в таблице
+				console.log(data.width); // Новая ширина столбца
+			}
+		});
+
+		$('#table4').liveGrid(
+		{
+			// Объект, наличие которого включает механизм сохранения колонок
+			saveColsSize:
+			{
+				uniqUserID: 'user1',
+				uniqTableID: '#table4'
+			},
+
+			// Callback вызывается, когда пользователь изменил ширину колонки
+			callback: function(data)
+			{
+				console.log(data.table); // Handle таблицы, ширину колонки которой изменили
+				console.log(data.index); // Порядковый номер столбца в таблице
+				console.log(data.width); // Новая ширина столбца
+			}
+		});
+	});
+</script>
+
+<div style="width: 2200px; overflow: hidden; display: block">
+	<div class="lg-wrap" style="float: left">
+		<table id="table2" border="1" height=200>
+			<tr>
+				<th style="width: 100px">head1</th>
+				<th style="width: 100px">head2</th>
+				<th style="width: 100px">head3</th>
+				<th style="width: 100px">head4</th>
+				<th style="width: 100px">head5</th>
+				<th style="width: 100px">head6</th>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="lg-wrap" style="float: left">
+		<table id="table3" border="1" height=200>
+			<tr>
+				<th style="width: 100px">head1</th>
+				<th style="width: 100px">head2</th>
+				<th style="width: 100px">head3</th>
+				<th style="width: 100px">head4</th>
+				<th style="width: 100px">head5</th>
+				<th style="width: 100px">head6</th>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="lg-wrap" style="float: left">
+		<table id="table4" border="1" height=200>
+			<tr>
+				<th style="width: 100px">head1</th>
+				<th style="width: 100px">head2</th>
+				<th style="width: 100px">head3</th>
+				<th style="width: 100px">head4</th>
+				<th style="width: 100px">head5</th>
+				<th style="width: 100px">head6</th>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+			<tr>
+				<td>content1</td>
+				<td>content2</td>
+				<td>content3</td>
+				<td>content4</td>
+				<td>content5</td>
+				<td>content6</td>
+			</tr>
+		</table>
+	</div>
+</div>
 </body>
 </html>

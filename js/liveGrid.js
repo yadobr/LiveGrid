@@ -11,7 +11,6 @@
             bResizeActivated = false, // Флаг, сообщающий об активации изменения ширины
             currentRh,                // Resize Handle за который потянули,
             thWidth,                  // Ширина th
-            thListWidth = 0,          // Ширина Всех th
             userID,                   // Идентификатор пользователя. Берется из параметров
             tableID,                  // Идентификатор таблицы. Берется из параметров
             userIDFromLocalStorage;   // Объект пользователя, с размерами колонок таблиц. Берется из LocalStorage
@@ -39,8 +38,6 @@
                         (userIDFromLocalStorage[tableID].colsWidth[i]) :
                         ($(this).outerWidth()); // OuterWidth = width + border + padding
 
-                    thListWidth += thWidth;
-
                     $(this).css('width', thWidth);
 
                     // Создаем Resize Handle у этой th
@@ -56,9 +53,7 @@
                     });
 				});
 
-                table.width(thListWidth);
-
-                // Расчитываем положение всех Resize Handles
+                // Функция подсчета ширины всех th, для изменения ширины таблицы и обертки
                 $.liveGrid.calc(userID, tableID);
 
                 // Скрываем скрытые колонки
@@ -74,14 +69,10 @@
                     {
                         table.width('auto');
 
-                        // Устанавливаем новые координаты Resize Handle
-                        currentRh.css('left', e.clientX + $(window).scrollLeft());
-
                         // Устанавливаем новую ширину колонки
                         currentRh.parent().width(e.clientX + $(window).scrollLeft() - currentRh.parent().offset().left);
 
-                        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
-                        // Изменения ширины таблицы и обертки
+                        // Функция подсчета ширины всех th, для изменения ширины таблицы и обертки
                         $.liveGrid.calc(userID, tableID);
 
                         table.addClass('lg-noselect');
@@ -276,8 +267,7 @@
             }
         },
 
-        // Функция подсчета ширины всех th, обновления коорднитат Resize Handles
-        // Изменения ширины таблицы и обертки
+        // Функция подсчета ширины всех th, для изменения ширины таблицы и обертки
         calc: function(userID, tableID)
         {
             if(
@@ -317,29 +307,6 @@
                                 thListWidth += thWidth;
                             }
                         });
-
-                        setTimeout(function()
-                        {
-                            rhList.each(function(i)
-                            {
-                                // Не учитываем скрытые колонки
-                                if($(thList[i]).css('display') != 'none')
-                                {
-                                    var offsetLeft = $(thList[i]).offset().left,
-                                        thWidth =
-                                            Number($(thList[i])[0].style.width.replace('px', '')) >= $(thList[i]).outerWidth() ?
-                                                (Number($(thList[i])[0].style.width.replace('px', ''))) :
-                                                ($(thList[i]).outerWidth());
-
-                                    $(this).css(
-                                        {
-                                            'left':
-                                            offsetLeft + thWidth - $(this).width() / 2.5,
-                                            'top': table.offset().top
-                                        });
-                                }
-                            });
-                        }, 50);
 
                         // Устанавливаем ширину таблице и ее обертке
                         // Иначе таблица не будет расширятся за пределы страницы
