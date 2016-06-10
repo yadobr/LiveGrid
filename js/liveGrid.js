@@ -36,11 +36,20 @@
 				thList.each(function(i)
 				{
                     // Считаем ширину этой th
-                    thWidth = 0;
+                    thWidth = 0;                	
 
-                    thWidth = userIDFromLocalStorage[tableID].colsWidth.length != 0 ?
-                        (userIDFromLocalStorage[tableID].colsWidth[i]) :
-                        ($(this).outerWidth()); // OuterWidth = width + border + padding
+                	try
+                	{
+	                    thWidth = userIDFromLocalStorage[tableID].colsWidth.length != 0 ?
+	                        (userIDFromLocalStorage[tableID].colsWidth[i]) :
+	                        ($(this).outerWidth()); // OuterWidth = width + border + padding
+	                }
+	                catch(err)
+	                {
+	                	console.log('LiveGrid: localStorage data error:'+err.name);
+	                	console.log(err.message);
+	                	localStorage.removeItem(userID);
+	                }
 
                     $(this).css('width', thWidth);
 
@@ -106,7 +115,10 @@
                     // Сбрасываем параметры
                     bResizeActivated = false;
                     currentRh = undefined;
-                    table.removeClass('lg-noselect');
+                    setTimeout(function()
+                    {
+                        table.removeClass('lg-noselect');
+                    }, 100);    
                 });
 			}
 			else
